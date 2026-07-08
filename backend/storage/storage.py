@@ -3,7 +3,12 @@ import shutil
 import uuid
 from fastapi import UploadFile, HTTPException, status
 
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "backend/uploads")
+UPLOAD_DIR = os.getenv("UPLOAD_DIR")
+if not UPLOAD_DIR:
+    if os.getenv("VERCEL"):
+        UPLOAD_DIR = "/tmp/uploads"
+    else:
+        UPLOAD_DIR = "backend/uploads"
 ALLOWED_EXTENSIONS = {"pdf", "jpg", "jpeg", "png", "zip"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB limit
 

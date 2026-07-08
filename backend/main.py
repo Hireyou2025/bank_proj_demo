@@ -18,6 +18,11 @@ from backend.api import auth, users, documents, branches, analytics, notificatio
 
 # Automatically create tables in database (SQLite/PostgreSQL)
 Base.metadata.create_all(bind=engine)
+try:
+    from backend.seed import seed_database
+    seed_database()
+except Exception as e:
+    print(f"Auto-seeding failed or skipped: {e}")
 
 app = FastAPI(
     title="Document Verification Workspace API",
@@ -45,7 +50,12 @@ app.add_middleware(
 )
 
 # Mount local upload storage as static files to allow downloading/previewing files directly
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "backend/uploads")
+UPLOAD_DIR = os.getenv("UPLOAD_DIR")
+if not UPLOAD_DIR:
+    if os.getenv("VERCEL"):
+        UPLOAD_DIR = "/tmp/uploads"
+    else:
+        UPLOAD_DIR = "backend/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/static/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
