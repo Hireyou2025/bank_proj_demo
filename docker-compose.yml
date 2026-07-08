@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database Container
+  db:
+    image: postgres:15-alpine
+    container_name: docverify_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword123
+      POSTGRES_DB: docverify
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # FastAPI Backend Container
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: docverify_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgrespassword123@db:5432/docverify
+      - JWT_SECRET_KEY=7e8346e27a6f23e27cb15f7ea1e34bcf9dbf42c169213ab18b84920fa58bca7d
+      - UPLOAD_DIR=/app/uploads
+    depends_on:
+      - db
+    volumes:
+      - uploads_data:/app/uploads
+
+  # React Frontend Container
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: docverify_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads_data:
