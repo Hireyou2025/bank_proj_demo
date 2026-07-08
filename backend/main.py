@@ -1,9 +1,23 @@
 import os
 import sys
 
-# Ensure backend folder is importable when running inside Vercel or subdirectories
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
+
+if os.getenv("VERCEL") and not os.path.exists(os.path.join(current_dir, "backend")):
+    # On Vercel, if the root directory is set to 'backend', the folder structure is flattened.
+    # We reconstruct the 'backend' package structure via a symlink in /tmp.
+    tmp_modules_dir = "/tmp/pymodules"
+    os.makedirs(tmp_modules_dir, exist_ok=True)
+    backend_symlink = os.path.join(tmp_modules_dir, "backend")
+    if not os.path.exists(backend_symlink):
+        try:
+            os.symlink(current_dir, backend_symlink)
+        except Exception as e:
+            print(f"Failed to create symlink: {e}")
+    if tmp_modules_dir not in sys.path:
+        sys.path.insert(0, tmp_modules_dir)
+
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 if current_dir not in sys.path:
