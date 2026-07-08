@@ -1,7 +1,11 @@
 import axios from "axios";
 
-// Default API Base URL (FastAPI dev server runs on 8000 by default)
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:8000"
+    : "https://bank-proj-demo.vercel.app");
 
 const api = axios.create({
   baseURL: API_URL,
